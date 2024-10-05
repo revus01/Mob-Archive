@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using JetBrains.Annotations;
+using Unity.AI.Navigation;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -13,6 +14,7 @@ namespace MobArchive
         [SerializeField, CanBeNull] private MobGameHUD _mobGameHUD;
         [SerializeField, CanBeNull] private StudentHandler _studentHandler;
         [SerializeField, CanBeNull] private EnemyHandler _enemyHandler;
+        [SerializeField] private NavMeshSurface _navMeshSurface;
         
         private List<StudentComponent> _studentComponents = new List<StudentComponent>();
         
@@ -24,6 +26,8 @@ namespace MobArchive
         {
             _studentComponents = FindObjectsOfType<StudentComponent>().ToList();
             _studentComponents.ForEach(_ => _.Initialize());
+            
+            _navMeshSurface.BuildNavMesh();
         }
 
         void Update()
