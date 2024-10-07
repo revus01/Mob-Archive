@@ -17,6 +17,8 @@ namespace MobArchive
         [SerializeField] private NavMeshSurface _navMeshSurface;
         
         private List<StudentComponent> _studentComponents = new List<StudentComponent>();
+        private SkillManager SkillManager => SkillManager.Instance;
+        private FXManager FXManager => FXManager.Instance;
         
         public void SetUp()
         {

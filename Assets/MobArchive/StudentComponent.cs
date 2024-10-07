@@ -11,10 +11,40 @@ namespace MobArchive
         [SerializeField] private EnemyDetectionHandler _viewRangeDetector;
         [SerializeField] private EnemyDetectionHandler _attackRangeDetector;
         [SerializeField] private NavMeshAgent _navMeshAgent;
+        [SerializeField] private Animator _animator;
 
 
-        private StudentState _currentState;
+        private class StudentStat
+        {
+            // 기본적인 스탯만 적용
+            public readonly int MaxHp;
+            public int CurrentHp;
+            public int AttackPower;
+            public int DefencePower;
+            public int HealPower;
+
+            public int AmmoCapacity;
+            public int AmmoCount;
+            
+            public StudentStat(int maxHp, int attackPower, int defencePower, int healPower)
+            {
+                MaxHp = maxHp;
+                CurrentHp = maxHp;
+                AttackPower = attackPower;
+                DefencePower = defencePower;
+                HealPower = healPower;
+                AmmoCapacity = 5;
+                AmmoCount = 5;
+            }
+        }
+        
+        public StudentAnimPlayer StudentAnimPlayer;
         private int _attackDamage = 10;
+        private StudentStat _studentStat;
+        private IState _currentState;
+        
+        public Animator Animator => _animator;
+        public NavMeshAgent NavMeshAgent => _navMeshAgent;
 
         private void Update()
         {
@@ -27,6 +57,7 @@ namespace MobArchive
                     if (Physics.Raycast(ray, out RaycastHit hit))
                     {
                         _navMeshAgent.SetDestination(hit.point);
+                        ChangeState(new Move(this));
                     }
                 }
             }
@@ -34,40 +65,42 @@ namespace MobArchive
 
         public void Initialize()
         {
+            StudentAnimPlayer = new StudentAnimPlayer();
             _viewRangeDetector.Initialize();
             _attackRangeDetector.Initialize();
-            _currentState = new Idle();
+            _currentState = new Idle(this);
+            _studentStat = new StudentStat(100, 20, 10, 10);
         }
         
         public void OnTimeElapsed(float deltaTime)
         {
-            OnUpdateState();
+            _currentState.UpdateState();
         }
-
-        private void ChangeState(StudentState previousState, StudentState newState, bool isForce)
+        
+        private void ChangeHp(int delta)
         {
-            
-        }
+            _studentStat.CurrentHp = Mathf.Clamp(_studentStat.CurrentHp + delta, 0, _studentStat.MaxHp);
 
-        private void OnEnterState(StudentState state)
-        {
-            
-        }
-
-        private void OnExitState(StudentState state)
-        {
-            
-        }
-
-        private void OnUpdateState()
-        {
-            if (_currentState is Idle || _currentState is Move)
+            if (_studentStat.CurrentHp == 0)
             {
-                return;
+                OnStudentDead();
             }
-
-            return;
         }
+
+        private void OnStudentDead()
+        {
+            
+        }
+
+        public void ChangeState(IState newState)
+        {
+            _currentState.ExitState();
+            _currentState = newState;
+            _currentState.EnterState();
+        }
+        
+        
+        
 
         public void NormalAttack()
         {
