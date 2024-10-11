@@ -59,7 +59,7 @@ namespace MobArchive
         public void UpdateState()
         {
             if (!_studentComponent.NavMeshAgent.pathPending &&
-            _studentComponent.NavMeshAgent.remainingDistance <= _studentComponent.NavMeshAgent.stoppingDistance)
+            _studentComponent.NavMeshAgent.remainingDistance <= _studentComponent.NavMeshAgent.stoppingDistance + 0.5f)
             {
                 _studentComponent.ChangeState(new Idle(_studentComponent));
             }
