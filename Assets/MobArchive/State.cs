@@ -17,7 +17,6 @@ namespace MobArchive
         public Idle(StudentComponent studentComponent)
         {
             _studentComponent = studentComponent;
-            _studentComponent.Animator.SetBool("move", false);
         }
 
 
@@ -29,7 +28,21 @@ namespace MobArchive
         
         public void UpdateState()
         {
-            Debug.Log("Updating Idle");
+            if (_studentComponent.IsEnemyInAttackRange())
+            {
+                _studentComponent.ChangeState(new AimIdle(_studentComponent, _studentComponent.GetTargetEnemy()));
+                return;
+            }
+            
+            if (_studentComponent.IsEnemyInViewRange())
+            {
+                var moveTarget = _studentComponent.GetMoveTarget();
+                if (moveTarget != null)
+                {
+                    _studentComponent.ChangeState(new Move(_studentComponent));
+                    _studentComponent.Move(moveTarget.transform.position);
+                }
+            }
         }
 
         public void ExitState()
@@ -58,8 +71,13 @@ namespace MobArchive
         
         public void UpdateState()
         {
-            if (!_studentComponent.NavMeshAgent.pathPending &&
-            _studentComponent.NavMeshAgent.remainingDistance <= _studentComponent.NavMeshAgent.stoppingDistance + 0.5f)
+            if (_studentComponent.IsEnemyInAttackRange())
+            {
+                _studentComponent.ChangeState(new Idle(_studentComponent));
+                return;
+            }
+
+            if (_studentComponent.IsArrived())
             {
                 _studentComponent.ChangeState(new Idle(_studentComponent));
             }
@@ -68,7 +86,54 @@ namespace MobArchive
 
         public void ExitState()
         {
-            Debug.Log("Exiting Move");
+            _studentComponent.Animator.SetBool("move", false);
+            _studentComponent.StopMovement();
+        }
+    }
+    
+    public class AimIdle : IState
+    {
+        private StudentComponent _studentComponent;
+        private EnemyComponent _targetEnemy;
+
+        public AimIdle(StudentComponent studentComponent, EnemyComponent targetEnemy)
+        {
+            _studentComponent = studentComponent;
+            _targetEnemy = targetEnemy;
+        }
+
+
+        public void EnterState()
+        {
+            _studentComponent.Animator.SetBool("aim", true);
+            _studentComponent.ChangeDirection(_targetEnemy.transform.position);
+        }
+
+        
+        public void UpdateState()
+        {
+            if (_targetEnemy == null)
+            {
+                if (!_studentComponent.IsEnemyInAttackRange())
+                {
+                    _studentComponent.ChangeState(new Idle(_studentComponent));
+                    return;
+                }
+
+                _targetEnemy = _studentComponent.GetTargetEnemy();
+            }
+            
+            _studentComponent.ChangeDirection(_targetEnemy.transform.position);
+
+            if (_studentComponent.CanNormalAttack())
+            {
+                _studentComponent.NormalAttack(_targetEnemy);
+            }
+        }
+
+        public void ExitState()
+        {
+            _studentComponent.Animator.SetBool("aim", false);
         }
     }
     

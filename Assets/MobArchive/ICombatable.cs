@@ -2,8 +2,8 @@
 {
     public interface ICombatable
     {
-        void NormalAttack();
-        void UseSkill();
+        void NormalAttack(IDamageble target);
+        void UseSkill(IDamageble target);
         void Reload();
         void Die();
     }
